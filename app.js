@@ -1,13 +1,28 @@
 // node is an environment; a js interpreter in commandline; outside of the browser env
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const routes = require('./routes/routes');
 const app = express();
+
+// get rid of Mongoose promise error
+mongoose.Promise = global.Promise;
+// connect mongoose with an instance of mongo
+if (process.env.NODE_ENV !== 'test') {
+	mongoose.connect('mongodb://localhost/muber');
+}
 
 // .json() means that any incoming request, we will assume it is json and parse it into an object for us
 // ***important to use bodyParser before routes(app)
 app.use(bodyParser.json());
 routes(app);
+
+// error handler
+app.use((err, req, res, next) => {
+	// res.send({ error: err.message });
+	// we add a status of 422; which is Unprocessable Entity
+	res.status(422).send({ error: err.message });
+});
 
 module.exports = app;
 
